@@ -12,10 +12,21 @@ from src.models import SNN, CNN
 from src.training import training, testing
 from sklearn.metrics import classification_report
 import matplotlib.pyplot as plt
+import time
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'使用设备：{device}')
+
+    timestamp = time.time()
+    if not os.path.exists('figs/'):
+        os.mkdir('figs/')
+    if not os.path.exists(f'figs/{timestamp}/'):
+        os.mkdir(f'figs/{timestamp}/')
+    if not os.path.exists('models_saved/'):
+        os.mkdir('models_saved/')
+    if not os.path.exists(f'models_saved/{timestamp}/'):
+        os.mkdir(f'models_saved/{timestamp}/')
 
     # --- 数据准备 ---
 
@@ -91,18 +102,18 @@ def main():
         snn_loss, snn_accuracy, snn_time = training(
             snn_model, train_loader, val_loader,
             snn_optimizer, criterion, device, epochs=20, snn_mode=True,
-            num_steps=25, path_load_model=f'{dataset_name}_snn_model.pt')
+            num_steps=25, path_load_model=f'models_saved/{timestamp}/{dataset_name}_snn_model.pt')
 
         # 训练 CNN 模型
         print(f'训练 CNN 模型：{dataset_name}')
         cnn_loss, cnn_accuracy, cnn_time = training(
             cnn_model, train_loader, val_loader,
             cnn_optimizer, criterion, device, epochs=20, snn_mode=False,
-            path_load_model=f'{dataset_name}_cnn_model.pt')
+            path_load_model=f'models_saved/{timestamp}/{dataset_name}_cnn_model.pt')
 
         # 加载最佳模型
-        snn_model.load_state_dict(torch.load(f'{dataset_name}_snn_model.pt'))
-        cnn_model.load_state_dict(torch.load(f'{dataset_name}_cnn_model.pt'))
+        snn_model.load_state_dict(torch.load(f'models_saved/{timestamp}/{dataset_name}_snn_model.pt'))
+        cnn_model.load_state_dict(torch.load(f'models_saved/{timestamp}/{dataset_name}_cnn_model.pt'))
 
         # 测试 SNN 模型
         print(f'测试 SNN 模型：{dataset_name}')
@@ -118,6 +129,8 @@ def main():
 
         # 可视化训练过程
         plt.figure(figsize=(15, 5))
+        plt.rcParams["font.sans-serif"]=["SimHei"] #设置字体
+        plt.rcParams["axes.unicode_minus"]=False #正常显示负号
 
         # 验证损失
         plt.subplot(1, 2, 1)
@@ -137,6 +150,7 @@ def main():
         plt.ylabel('Accuracy')
         plt.legend()
 
+        plt.savefig(f'figs/{timestamp}/{dataset_name}结果报告.png')
         plt.show()
 
 if __name__ == "__main__":

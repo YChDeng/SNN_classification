@@ -2,6 +2,7 @@
 
 import os
 import torchvision.transforms as transforms
+import torchvision.transforms.functional as TF
 from torchvision import datasets
 from torch.utils.data import DataLoader, random_split
 
@@ -12,14 +13,14 @@ def get_transforms():
             self.size = size
 
         def __call__(self, x):
-            x = transforms.functional.crop(x, 2, 2, x.size[1] - 6, x.size[0] - 6)
-            x = transforms.functional.to_grayscale(x)
-            x = transforms.functional.invert(x)
-            a = max(x.size) - x.size[0]
-            b = max(x.size) - x.size[1]
-            x = transforms.functional.pad(x, [a // 2, b // 2, a - a // 2, b - b // 2], fill=0)
-            if x.size[0] > self.size:
-                x = transforms.functional.resize(x, [self.size, self.size], antialias=True)
+            x = TF.crop(x, 2, 2, TF.get_image_size(x)[1] - 6, TF.get_image_size(x)[0] - 6)
+            x = TF.rgb_to_grayscale(x)
+            x = TF.invert(x)
+            a = max(TF.get_image_size(x)) - TF.get_image_size(x)[0]
+            b = max(TF.get_image_size(x)) - TF.get_image_size(x)[1]
+            x = TF.pad(x, [a // 2, b // 2, a - a // 2, b - b // 2], fill=0)
+            if TF.get_image_size(x)[0] > self.size:
+                x = TF.resize(x, [self.size, self.size], antialias=True)
             return x
 
     fingerprints_transform = transforms.Compose([
